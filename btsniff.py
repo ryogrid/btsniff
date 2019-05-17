@@ -3,8 +3,15 @@
 import os
 import sys
 import time
-import libtorrent as lt
 from base64 import b32encode
+from os import path
+
+sys.path.append(path.dirname("/usr/lib/python2.7/dist-packages/"))
+
+#import ctypes
+#lib = ctypes.cdll.LoadLibrary(PATH_TO_LIB)
+
+import libtorrent as lt
 
 class Btsniff:
     def __init__(self):
@@ -54,6 +61,9 @@ class Btsniff:
             except:
                 return
 
+            #rkan added
+            #print(info_hash)
+            
             self.serial += 1
             if not info_hash in self.info_hashes:
                 self.info_hashes[info_hash] = {'serial': self.serial, 'unixtime': time.time()}
@@ -84,6 +94,21 @@ class Btsniff:
                     print >>f, line
                     f.flush()
                 self.ses.remove_torrent(h, 1) # session::delete_files
+        elif alert_type == 'torrent_added_alert':
+            h = alert.handle
+            if h.is_valid():
+                ti = h.get_torrent_info()
+                #print(str(ti))
+            #print(str(alert.handle))
+            #print(str(alert))
+        elif alert_type == 'add_torrent_alert':
+            h = alert.handle
+            if h.is_valid():
+                ti = h.get_torrent_info()
+                #print(str(ti))            
+            # no interesting information (almost empty)
+            #print(str(alert.params))
+ 
 
 
 if __name__ == '__main__':
