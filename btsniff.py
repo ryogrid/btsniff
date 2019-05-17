@@ -63,6 +63,11 @@ class Btsniff:
 
             #rkan added
             #print(info_hash)
+
+            # this code return only on my own information.... 
+            #tr_handle = self.ses.find_torrent(alert.info_hash)
+            #tr_info = tr_handle.torrent_file()
+            #print(str(tr_info))
             
             self.serial += 1
             if not info_hash in self.info_hashes:
