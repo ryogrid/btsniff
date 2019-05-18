@@ -24,8 +24,10 @@ class Btsniff:
             os.mkdir('log')
 
         self.ses = lt.session()
-        self.ses.set_alert_mask(lt.alert.category_t.status_notification | 0x400) # lt.alert.category_t.dht_notification
-
+        #self.ses.set_alert_mask(lt.alert.category_t.status_notification | 0x400) # lt.alert.category_t.dht_notification
+        #self.ses.set_alert_mask(lt.alert.category_t.dht_notification)
+        self.ses.set_alert_mask(lt.alert.category_t.all_categories)
+        
         self.ses.listen_on(port, port)
         self.ses.start_dht()
         self.ses.add_dht_router("router.bittorrent.com", 6881)
@@ -34,10 +36,19 @@ class Btsniff:
 
         info = lt.torrent_info(torrent_file)
         h = self.ses.add_torrent({'ti': info, 'save_path': './'})
-
+        
+        s = h.status()
+        print('starting', s.name)
+        
         while not h.is_seed():
             alert = self.ses.pop_alert()
             while alert is not None:
+                #if self.serial % 30 == 0:
+                #    s = h.status()
+                #    print(s.name)
+                #    print('%s: \r%.2f%% complete (down: %.1f kB/s up: %.1f kB/s peers: %d) %s' % (
+                #        s.name, s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000,
+                #        s.num_peers, s.state))
                 self.handle_alert(alert)
                 alert = self.ses.pop_alert()
             time.sleep(0.1)
@@ -55,7 +66,12 @@ class Btsniff:
         alert_type = type(alert).__name__
         print "[%s] %s" % (alert_type, alert.message())
 
+        # only empty string printed
+        # torrent_list = self.ses.get_torrents()
+        # for tr_handle in torrent_list:
+        #     print(tr_handle.status().name)
         if alert_type == 'dht_get_peers_alert':
+            print "[%s] %s" % (alert_type, alert.message())
             try:
                 info_hash = alert.info_hash.to_string()
             except:
@@ -76,8 +92,11 @@ class Btsniff:
                 return
 
             h = self.ses.add_torrent({'info_hash': alert.info_hash.to_bytes(), 'save_path': './'})
+            #s = h.status()
+            #print('added torrent via get_peers_alert', str(s.state))
             h.queue_position_top()
         elif alert_type == 'metadata_received_alert':
+            print "[%s] %s" % (alert_type, alert.message())
             h = alert.handle
             info_hash = str(h.info_hash())
             if h.is_valid():
@@ -100,19 +119,36 @@ class Btsniff:
                     f.flush()
                 self.ses.remove_torrent(h, 1) # session::delete_files
         elif alert_type == 'torrent_added_alert':
-            h = alert.handle
-            if h.is_valid():
-                ti = h.get_torrent_info()
-                #print(str(ti))
-            #print(str(alert.handle))
-            #print(str(alert))
+            print "[%s] %s" % (alert_type, alert.message())
+            # try:
+            #     info_hash = alert.info_hash.to_string()
+            # except:
+            #     return
+            
+            # self.serial += 1
+            # if not info_hash in self.info_hashes:
+            #     self.info_hashes[info_hash] = {'serial': self.serial, 'unixtime': time.time()}
+            # else:
+            #     return
+
+            # h = self.ses.add_torrent({'info_hash': alert.info_hash.to_bytes(), 'save_path': './'})
+            # h.queue_position_top()
         elif alert_type == 'add_torrent_alert':
-            h = alert.handle
-            if h.is_valid():
-                ti = h.get_torrent_info()
-                #print(str(ti))            
-            # no interesting information (almost empty)
-            #print(str(alert.params))
+            print "[%s] %s" % (alert_type, alert.message())
+            # try:
+            #     info_hash = alert.info_hash.to_string()
+            # except:
+            #     return
+            
+            # self.serial += 1
+            # if not info_hash in self.info_hashes:
+            #     self.info_hashes[info_hash] = {'serial': self.serial, 'unixtime': time.time()}
+            # else:
+            #     return
+
+            # h = self.ses.add_torrent({'info_hash': alert.info_hash.to_bytes(), 'save_path': './'})
+            # h.queue_position_top()
+
  
 
 
