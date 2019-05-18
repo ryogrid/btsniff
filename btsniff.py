@@ -23,6 +23,7 @@ class Btsniff:
         if not os.path.isdir('log'):
             os.mkdir('log')
 
+        print("libtorrent version: " + lt.version)
         self.ses = lt.session()
         #self.ses.set_alert_mask(lt.alert.category_t.status_notification | 0x400) # lt.alert.category_t.dht_notification
         #self.ses.set_alert_mask(lt.alert.category_t.dht_notification)
