@@ -21,6 +21,7 @@ class Btsniff:
         self.ses = None
         self.serial = 0L
         self.info_hashes = {}
+        self.fetching = False
 
     def fetch_torrent(self, session, ih, timeout):
         name = ih.upper()
@@ -61,7 +62,10 @@ class Btsniff:
 
 
 #    def download_metadata(self, address, binhash, metadata_queue, timeout=40):
-    def download_metadata(self, binhash, timeout=40):
+    def download_metadata(self, binhash, timeout=300):
+        if self.fetching == True:
+            return
+        
         metadata = None
         start_time = time.time()
         try:
@@ -74,10 +78,12 @@ class Btsniff:
             # session.add_dht_router('127.0.0.1',6881)
             # session.start_dht()
             metadata = self.fetch_torrent(self.ses, binhash.encode('hex'), timeout)
+            print("downloaded metadata of " + binhash.encode('hex').upper() + " : " + str(metadata))
             #session = None
         except:
             traceback.print_exc()
-        # finally:
+        finally:
+            self.fetching = False
         #     metadata_queue.put((binhash, address, metadata, 'lt', start_time))
 
     def start(self, torrent_file, port=6881):
@@ -134,8 +140,11 @@ class Btsniff:
             else:
                 return
 
-            meta = self.download_metadata(alert.info_hash.to_bytes(), 40)
-            print("downloaded metadata of " + info_hash + " : " + str(meta))
+            #meta = self.download_metadata(alert.info_hash.to_bytes())
+            #print("downloaded metadata of " + info_hash + " : " + str(meta))
+            thread = threading.Thread(target=self.download_metadata, args=([alert.info_hash.to_bytes()]))
+            thread.start()
+
             
             #h = self.ses.add_torrent({'info_hash': alert.info_hash.to_bytes(), 'save_path': './'})
             #h.queue_position_top()
