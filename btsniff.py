@@ -25,16 +25,23 @@ class Btsniff:
 
         print("libtorrent version: " + lt.version)
         self.ses = lt.session()
-        #self.ses.set_alert_mask(lt.alert.category_t.status_notification | 0x400) # lt.alert.category_t.dht_notification
+        self.ses.set_alert_mask(lt.alert.category_t.status_notification | 0x400) # lt.alert.category_t.dht_notification
         #self.ses.set_alert_mask(lt.alert.category_t.dht_notification)
-        self.ses.set_alert_mask(lt.alert.category_t.all_categories)
+        #self.ses.set_alert_mask(lt.alert.category_t.all_categories)
+        # returned None
+        #peer_id = self.ses.listen_on(port, port)
+        #print(str(peer_id))
         
-        self.ses.listen_on(port, port)
         self.ses.start_dht()
         self.ses.add_dht_router("router.bittorrent.com", 6881)
         self.ses.add_dht_router("router.utorrent.com", 6881)
         self.ses.add_dht_router("router.bitcomet.com", 6881)
 
+        dstate = self.ses.dht_state()
+        # print peer ID
+        print(dstate)
+
+        
         info = lt.torrent_info(torrent_file)
         h = self.ses.add_torrent({'ti': info, 'save_path': './'})
         
